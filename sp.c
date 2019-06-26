@@ -1,4 +1,5 @@
 #include <math.h>
+struct f2{float a,b;};
 
 static inline float sum(float* a, unsigned char len){
 	float r = 0;
@@ -7,43 +8,26 @@ static inline float sum(float* a, unsigned char len){
 	return r;
 }
 
-static inline float p(unsigned char k, unsigned* n, unsigned char a){
-	float r = log2f(n[0]) - sum((float*)n+k, k-1) / n[0];
+static inline struct f2 p(unsigned char a, unsigned* n, unsigned char k){
+	struct f2 r = {log2f(n[0])-sum((float*)n+k,k-1)/n[0], log2f((float)n[0]/n[a])};
 	n[0] ++;
 	n[a] ++;
 	*(float*)(n+k-1+a) = log2f(n[a]) * n[a];
 	return r;
 }
 
-static inline float cp(unsigned char k, unsigned char prd, unsigned step, unsigned* n, unsigned char* a){
+static inline struct f2 cp(unsigned char* a, unsigned char prd, unsigned* n, unsigned step, unsigned char k){
 	if (prd == 0)
-		return p(k, n, a[0]);
-	return fminf(cp(k, prd-1, step/k, n, a+1),
-				 cp(k, prd-1, step/k, n+a[0]*step, a+1));
+		return p(*a, n, k);
+	struct f2 x = cp(a+1, prd-1, n, step/k, k);
+	struct f2 y = cp(a+1, prd-1, n+*a*step, step/k, k);
+	return x.a > y.a ? x : y;
 }
 
-static inline float sp(unsigned char k, unsigned char prd, unsigned len, unsigned* n, unsigned char* a){
+float sp(unsigned char* a, unsigned len, unsigned char prd, unsigned* n, unsigned char k){
 	float r = 0;
 	unsigned step = (2u * k - 1) * pow(k, prd-1);
 	for(unsigned i=0; i<len-prd; i++)
-		r += cp(k, prd, step, n, a+i);
+		r += cp(a+i, prd, n, step, k).b;
 	return r / (len-prd);
 }
-
-float s2p0(unsigned len, unsigned* n, unsigned char* a){return sp(3, 0, len, n, a);}
-float s2p1(unsigned len, unsigned* n, unsigned char* a){return sp(3, 1, len, n, a);}
-float s2p2(unsigned len, unsigned* n, unsigned char* a){return sp(3, 2, len, n, a);}
-float s2p3(unsigned len, unsigned* n, unsigned char* a){return sp(3, 3, len, n, a);}
-float s2p4(unsigned len, unsigned* n, unsigned char* a){return sp(3, 4, len, n, a);}
-float s2p5(unsigned len, unsigned* n, unsigned char* a){return sp(3, 5, len, n, a);}
-float s2p6(unsigned len, unsigned* n, unsigned char* a){return sp(3, 6, len, n, a);}
-float s2p7(unsigned len, unsigned* n, unsigned char* a){return sp(3, 7, len, n, a);}
-float s2p8(unsigned len, unsigned* n, unsigned char* a){return sp(3, 8, len, n, a);}
-float s2p9(unsigned len, unsigned* n, unsigned char* a){return sp(3, 9, len, n, a);}
-float s2p10(unsigned len, unsigned* n, unsigned char* a){return sp(3, 10, len, n, a);}
-float s2p11(unsigned len, unsigned* n, unsigned char* a){return sp(3, 11, len, n, a);}
-float s2p12(unsigned len, unsigned* n, unsigned char* a){return sp(3, 12, len, n, a);}
-float s2p13(unsigned len, unsigned* n, unsigned char* a){return sp(3, 13, len, n, a);}
-float s2p14(unsigned len, unsigned* n, unsigned char* a){return sp(3, 14, len, n, a);}
-float s2p15(unsigned len, unsigned* n, unsigned char* a){return sp(3, 15, len, n, a);}
-float s2p16(unsigned len, unsigned* n, unsigned char* a){return sp(3, 16, len, n, a);}
